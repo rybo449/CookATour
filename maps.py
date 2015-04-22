@@ -95,17 +95,23 @@ def route(time, lat, lng, templat, templng, time_left):
 def decideplace(time, track, lat, lng, start):
 	if time<0:
 		return time, templat, templng, name
+
 	data = places.filters({'$and':[{'category_ids':{'$includes':track}}]}).geo(circle(lat,lng, 1000*time)).limit(5).data()
-	data = data[random.randrange(0,len(data))]
+	if not data:
+		templat = lat
+		templng = lng
+		name = start
+	else:
+		data = data[random.randrange(0,len(data))]
 
-	templat = float(data[u'latitude'])
-	templng = float(data[u'longitude'])
-	name = str(data[u'name'])
-	print "Go from", start, "to", name,"starting at time", str(now+input2-datetime.timedelta(hours = time))
-	time = route(now + input2 - datetime.timedelta(hours = time), lat, lng, templat, templng, time)
-	time -= 1
-	printresults_places(data)
-
+		templat = float(data[u'latitude'])
+		templng = float(data[u'longitude'])
+		name = str(data[u'name'])
+		print "Go from", start, "to", name,"starting at time", str(now+input2-datetime.timedelta(hours = time))
+		time = route(now + input2 - datetime.timedelta(hours = time), lat, lng, templat, templng, time)
+		time -= 1
+		printresults_places(data)
+		
 	sleeper.sleep(0.1)
 	return time, templat, templng, name
 
@@ -113,23 +119,27 @@ def decidefood(time, lat, lng, start):
 	print "Time for a Snack!"
 	if time<0:
 		return time, templat, templng, name
-
 	if time<1:
 		data = places.filters({'$and':[{'category_ids':{'$includes':338}}, {'category_ids':{'$excludes':341}}]}).geo(circle(lat,lng,1000*time)).limit(5).data()
 		time -= 0.25	
-		data = data[random.randrange(1,len(data))]	
+		data = data[random.randrange(0,len(data))]	
 	else:
 		data = places.filters({'$and':[{'category_ids':{'$includes':347}}]}).geo(circle(lat,lng,1000*time)).limit(5).data()
 		time -= 1
+	try:
 		data = data[random.randrange(0,len(data))]
 
-	templat = float(data[u'latitude'])
-	templng = float(data[u'longitude'])
-	name = str(data[u'name'])
-	print "Go from", start, "to", name,"starting at time", str(now+input2-datetime.timedelta(hours = time))
-	time = route(now + input2 - datetime.timedelta(hours = time), lat, lng, templat, templng, time)
-	printresults_food(data)
-	#print time
+		templat = float(data[u'latitude'])
+		templng = float(data[u'longitude'])
+		name = str(data[u'name'])
+		print "Go from", start, "to", name,"starting at time", str(now+input2-datetime.timedelta(hours = time))
+		time = route(now + input2 - datetime.timedelta(hours = time), lat, lng, templat, templng, time)
+		printresults_food(data)
+		#print time
+	except:
+		templat = lat
+		templng = lng
+		name = start
 	sleeper.sleep(0.1)
 	return time, templat, templng, name
 
